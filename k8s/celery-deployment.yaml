@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nhwz-celery
+  namespace: nhwz
+  labels:
+    app: nhwz-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nhwz-celery
+  template:
+    metadata:
+      labels:
+        app: nhwz-celery
+    spec:
+      containers:
+        - name: celery
+          image: ghcr.io/nhwz/backend:latest
+          command:
+            - celery
+            - -A
+            - config.celery
+            - worker
+            - --loglevel=info
+            - --concurrency=4
+          envFrom:
+            - configMapRef:
+                name: nhwz-config
+            - secretRef:
+                name: nhwz-secrets
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nhwz-celery-beat
+  namespace: nhwz
+  labels:
+    app: nhwz-celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nhwz-celery-beat
+  template:
+    metadata:
+      labels:
+        app: nhwz-celery-beat
+    spec:
+      containers:
+        - name: celery-beat
+          image: ghcr.io/nhwz/backend:latest
+          command:
+            - celery
+            - -A
+            - config.celery
+            - beat
+            - --loglevel=info
+          envFrom:
+            - configMapRef:
+                name: nhwz-config
+            - secretRef:
+                name: nhwz-secrets
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"

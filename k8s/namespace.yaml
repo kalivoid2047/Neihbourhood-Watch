@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nhwz
+  labels:
+    app.kubernetes.io/name: nhwz
+    app.kubernetes.io/managed-by: kubectl

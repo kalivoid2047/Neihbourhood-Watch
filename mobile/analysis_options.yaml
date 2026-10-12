@@ -1,0 +1,34 @@
+# Static analysis configuration for the Neighbourhood Watch mobile app.
+#
+# Run with `flutter analyze`. CI treats any issue as a failure, so the rule set
+# below is the real contract, not a suggestion.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+
+  errors:
+    # An unused import or a dangling variable is nearly always a leftover from
+    # an edit, so fail the build rather than let them accumulate.
+    unused_import: error
+    unused_local_variable: error
+
+linter:
+  rules:
+    # Off deliberately: this rule fires on constructors that take a named
+    # parameter and assign it to a private field, and suggests `this._field`.
+    # Dart forbids private named parameters, so the suggested fix does not
+    # compile. Named parameters are worth keeping at these call sites — with
+    # four dependencies, `AlarmEngine(incidents: …, location: …)` reads far
+    # better than four positional arguments.
+    prefer_initializing_formals: false
+
+    # Encouraged: these catch real mistakes in async UI code.
+    avoid_empty_else: true
+    cancel_subscriptions: true
+    close_sinks: true
+    unawaited_futures: true

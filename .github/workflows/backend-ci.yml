@@ -1,0 +1,44 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system check
+        run: python backend/manage.py check --settings=config.settings.test
+
+      - name: Lint (flake8)
+        run: |
+          flake8 backend/apps backend/config \
+            --max-line-length=120 \
+            --exclude=migrations,__pycache__ \
+            --per-file-ignores="config/settings/*.py:F401,F403,F405"
+
+      - name: Run tests
+        run: python backend/manage.py test apps --settings=config.settings.test --verbosity=1
+
+      - name: Django deploy check
+        env:
+          DJANGO_SECRET_KEY: "ci-placeholder-secret-key-used-only-for-deploy-checks-minimum-fifty-chars"
+          DJANGO_ALLOWED_HOSTS: "ci.example.com"
+          DATABASE_URL: "postgresql://ci:ci@localhost/ci"
+        run: python backend/manage.py check --deploy --settings=config.settings.production

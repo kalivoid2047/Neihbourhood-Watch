@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nhwz-api
+  namespace: nhwz
+  labels:
+    app: nhwz-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nhwz-api
+  template:
+    metadata:
+      labels:
+        app: nhwz-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/nhwz/backend:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: nhwz-config
+            - secretRef:
+                name: nhwz-secrets
+          command:
+            - gunicorn
+            - config.wsgi:application
+            - --bind
+            - 0.0.0.0:8000
+            - --workers
+            - "4"
+            - --timeout
+            - "60"
+          readinessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nhwz-api
+  namespace: nhwz
+spec:
+  selector:
+    app: nhwz-api
+  ports:
+    - port: 8000
+      targetPort: 8000

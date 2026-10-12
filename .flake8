@@ -1,0 +1,23 @@
+[flake8]
+max-line-length = 120
+# W391  blank line at end of file     — cosmetic, pre-existing across the whole codebase.
+# F841  local variable never used      — common in tests and service stubs.
+# E501  line too long                  — pre-existing violations in OpenAPISchemaView long strings.
+extend-ignore = W391,F841,E501
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    .venv312,
+    migrations,
+    node_modules,
+    frontend,
+    infra
+per-file-ignores =
+    # Star-import settings files intentionally re-export everything.
+    */settings/*.py: F401,F403,F405
+    # Test helpers often import for side-effects or future use.
+    */tests/*.py: F401
+    # Pre-existing unused imports in Phase 3/4 incident layer — not Phase 7 scope.
+    */incidents/serializers.py: F401
+    */incidents/views.py: F401

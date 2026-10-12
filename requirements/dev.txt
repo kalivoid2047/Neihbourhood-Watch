@@ -1,0 +1,13 @@
+# Development & test extras on top of base.
+-r base.txt
+
+# Testing
+pytest>=8.4,<9
+pytest-django>=4.11,<5
+
+# Linting
+flake8>=7.0,<8
+
+# Observability (optional in dev but useful for parity with prod)
+sentry-sdk[django]>=2.0,<3
+python-json-logger>=2.0,<3

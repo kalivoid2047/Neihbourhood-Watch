@@ -1,0 +1,20 @@
+# Core runtime — required on every deployment target.
+Django>=5.2,<5.3
+djangorestframework>=3.17,<3.18
+djangorestframework-simplejwt>=5.5,<5.6
+django-filter>=25.2,<26
+django-cors-headers>=4.9,<5
+psycopg2-binary>=2.9,<3
+Pillow>=11,<12
+celery[redis]>=5.4,<6
+channels[daphne]>=4.2,<5
+django-storages[boto3]>=1.14,<2
+drf-spectacular>=0.28,<0.29
+python-magic>=0.4,<0.5
+django-axes>=7.0,<8
+
+# Push notifications to the mobile app (Firebase Cloud Messaging HTTP v1).
+# Only used when FCM_ENABLED is true and credentials are configured; the
+# mobile alarm falls back to polling without them. See docs/FIREBASE_SETUP.md.
+google-auth>=2.35,<3
+requests>=2.32,<3

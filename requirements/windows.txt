@@ -1,0 +1,10 @@
+# Windows-native extras on top of base.
+# Use this file instead of prod.txt on Windows servers where gunicorn is
+# unavailable.  waitress is a pure-Python WSGI server that runs on Windows.
+-r base.txt
+
+waitress>=3.0,<4
+
+# Observability
+sentry-sdk[django]>=2.0,<3
+python-json-logger>=2.0,<3

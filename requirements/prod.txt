@@ -1,0 +1,10 @@
+# Production extras on top of base.
+-r base.txt
+
+# WSGI/ASGI servers
+gunicorn>=23,<24          # Linux/macOS production server (WSGI)
+# daphne is already pulled in by channels[daphne] — no duplicate needed
+
+# Observability
+sentry-sdk[django]>=2.0,<3
+python-json-logger>=2.0,<3

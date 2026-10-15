@@ -306,6 +306,10 @@ INCIDENT_NEARBY_VISIBILITY_RADIUS_M = env_int("INCIDENT_NEARBY_VISIBILITY_RADIUS
 # Users within this many metres of a new SOS alert (or in the sender's
 # neighbourhood) get a siren.  Smaller than the incident radius: an SOS is
 # something a neighbour could actually walk to.
+# Sniff uploads with libmagic instead of the built-in signature table. Off by
+# default: loading libmagic can hang forever on some Windows installs.
+USE_LIBMAGIC = env_bool("USE_LIBMAGIC", False)
+
 SOS_ALERT_RADIUS_M = env_int("SOS_ALERT_RADIUS_M", 2000)
 
 # Severities that alert neighbours the moment they are reported, before a

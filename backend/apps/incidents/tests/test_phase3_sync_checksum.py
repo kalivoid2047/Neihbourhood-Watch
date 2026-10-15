@@ -13,6 +13,9 @@ Covers:
 import hashlib
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+
+# Uploads are content-sniffed, so test files need a real image signature.
+JPEG = bytes([0xFF, 0xD8, 0xFF])
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
@@ -106,7 +109,7 @@ class MediaChecksumTests(TestCase):
         self.client.force_authenticate(self.user)
         self.incident = create_incident(self.user)
 
-    def _upload(self, content=b"fake image data", name="photo.jpg"):
+    def _upload(self, content=JPEG + b"fake image data", name="photo.jpg"):
         upload = SimpleUploadedFile(name, content, content_type="image/jpeg")
         return self.client.post(
             f"/api/incidents/{self.incident.pk}/upload_media/",
@@ -127,14 +130,14 @@ class MediaChecksumTests(TestCase):
         int(media.checksum, 16)  # raises ValueError if not valid hex
 
     def test_checksum_matches_sha256_of_content(self):
-        content = b"deterministic content for checksum test"
+        content = JPEG + b"deterministic content for checksum test"
         self._upload(content=content)
         media = IncidentMedia.objects.get(incident=self.incident)
         expected = hashlib.sha256(content).hexdigest()
         self.assertEqual(media.checksum, expected)
 
     def test_identical_files_produce_same_checksum(self):
-        content = b"same bytes"
+        content = JPEG + b"same bytes"
         user2 = create_user(
             email="user2@example.com",
             phone_number="+263771000003",
@@ -168,8 +171,8 @@ class MediaChecksumTests(TestCase):
         client2 = APIClient()
         client2.force_authenticate(user2)
 
-        self._upload(content=b"content-A")
-        upload2 = SimpleUploadedFile("b.jpg", b"content-B", content_type="image/jpeg")
+        self._upload(content=JPEG + b"content-A")
+        upload2 = SimpleUploadedFile("b.jpg", JPEG + b"content-B", content_type="image/jpeg")
         client2.post(
             f"/api/incidents/{incident2.pk}/upload_media/",
             {"file": upload2, "media_type": IncidentMedia.MediaType.IMAGE},

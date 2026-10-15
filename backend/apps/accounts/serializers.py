@@ -19,19 +19,15 @@ def _validate_profile_photo(file_obj):
     """
     if file_obj.size > _PROFILE_PHOTO_MAX_BYTES:
         raise serializers.ValidationError("Profile photo cannot exceed 5 MB.")
-    try:
-        import magic
-        header = file_obj.read(2048)
-        file_obj.seek(0)
-        detected = magic.from_buffer(header, mime=True)
-        if not any(detected.startswith(p) for p in _PROFILE_PHOTO_ALLOWED_MIME):
-            raise serializers.ValidationError(
-                f"Profile photo must be a JPEG, PNG, WebP, or GIF image (detected: {detected})."
-            )
-    except ImportError:
-        content_type = getattr(file_obj, "content_type", "") or ""
-        if content_type and not any(content_type.startswith(p) for p in _PROFILE_PHOTO_ALLOWED_MIME):
-            raise serializers.ValidationError("Profile photo must be a JPEG, PNG, WebP, or GIF image.")
+    from apps.core.mime import detect_mime
+
+    header = file_obj.read(2048)
+    file_obj.seek(0)
+    detected = detect_mime(header)
+    if not detected or not any(detected.startswith(p) for p in _PROFILE_PHOTO_ALLOWED_MIME):
+        raise serializers.ValidationError(
+            f"Profile photo must be a JPEG, PNG, WebP, or GIF image (detected: {detected or 'unknown'})."
+        )
     return file_obj
 
 

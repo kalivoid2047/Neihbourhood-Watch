@@ -233,32 +233,21 @@ class IncidentMediaUploadSerializer(serializers.Serializer):
         file_obj = attrs.get("file")
         media_type = attrs.get("media_type")
         if file_obj and media_type:
-            try:
-                import magic
-                header = file_obj.read(2048)
-                file_obj.seek(0)
-                detected_mime = magic.from_buffer(header, mime=True)
-                allowed_prefixes = self._ALLOWED_MIME_PREFIXES.get(media_type, ())
-                if not any(detected_mime.startswith(p) for p in allowed_prefixes):
-                    raise serializers.ValidationError(
-                        {"file": f"File content does not match media type '{media_type}' (detected: {detected_mime})."}
-                    )
-            except ImportError:
-                # python-magic not installed; fall back to the browser-supplied Content-Type.
-                # This is less reliable than magic bytes but still filters obviously wrong types.
-                content_type = getattr(file_obj, "content_type", "") or ""
-                allowed_prefixes = self._ALLOWED_MIME_PREFIXES.get(media_type, ())
-                if content_type and allowed_prefixes and not any(
-                    content_type.startswith(p) for p in allowed_prefixes
-                ):
-                    raise serializers.ValidationError(
-                        {
-                            "file": (
-                                f"File content type '{content_type}' does not match "
-                                f"the expected media type '{media_type}'."
-                            )
-                        }
-                    )
+            from apps.core.mime import detect_mime
+
+            header = file_obj.read(2048)
+            file_obj.seek(0)
+            detected_mime = detect_mime(header)
+            allowed_prefixes = self._ALLOWED_MIME_PREFIXES.get(media_type, ())
+            if not detected_mime or not any(detected_mime.startswith(p) for p in allowed_prefixes):
+                raise serializers.ValidationError(
+                    {
+                        "file": (
+                            f"File content does not match media type '{media_type}' "
+                            f"(detected: {detected_mime or 'unknown'})."
+                        )
+                    }
+                )
         return attrs
 
 

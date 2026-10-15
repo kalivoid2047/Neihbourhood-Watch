@@ -46,3 +46,9 @@ if not _redis_reachable(REDIS_URL):  # noqa: F405
     )
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+
+# `runserver` only speaks WebSocket (live map, alerts) when daphne is installed
+# as an app and listed before django.contrib.staticfiles.
+if module_available("daphne"):  # noqa: F405
+    INSTALLED_APPS.insert(0, "daphne")  # noqa: F405

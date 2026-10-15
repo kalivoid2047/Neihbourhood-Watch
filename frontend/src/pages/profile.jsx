@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit2, Check, X, AlertCircle, BadgeCheck } from 'lucide-react';
-import { updateProfile, extractErrors } from '../api';
+import { Edit2, Check, X, AlertCircle, BadgeCheck, Shield } from 'lucide-react';
+import { updateProfile, applyForBlockCaptain, extractErrors } from '../api';
 import { PageHeader, PageContent } from '../components/layout';
 import { Card, Badge, Button, FormField, Input, Alert, Spinner, Detail, Tilt } from '../components/ui';
 
@@ -20,6 +20,9 @@ export default function ProfilePage({ user, onUpdate }) {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [applyError, setApplyError] = useState(null);
+  const isResident = (user.role?.code || 'resident') === 'resident';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,6 +42,18 @@ export default function ProfilePage({ user, onUpdate }) {
       else setServerError(err.payload?.detail || 'Failed to save changes.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApply = async () => {
+    setApplyError(null);
+    setApplying(true);
+    try {
+      onUpdate(await applyForBlockCaptain());
+    } catch (err) {
+      setApplyError(err.payload?.detail || 'Could not submit your application. Please try again.');
+    } finally {
+      setApplying(false);
     }
   };
 
@@ -109,6 +124,23 @@ export default function ProfilePage({ user, onUpdate }) {
               </dl>
             )}
           </Card>
+
+          {isResident && (
+            <Card className="lg:col-start-2">
+              <h2 className="text-lg flex items-center gap-2"><Shield className="w-5 h-5" /> Become a block captain</h2>
+              <p className="text-sm text-slate-400 mt-2">
+                Block captains help look after their neighbourhood. Apply and an administrator will review your account.
+              </p>
+              {applyError && <Alert variant="danger" icon={AlertCircle} message={applyError} className="mt-4" />}
+              {user.block_captain_applied_at ? (
+                <p className="mt-4"><Badge variant="warning">Application pending review</Badge></p>
+              ) : (
+                <Button className="mt-4" onClick={handleApply} disabled={applying}>
+                  {applying ? <><Spinner className="w-4 h-4" /> Submitting…</> : 'Apply to be a block captain'}
+                </Button>
+              )}
+            </Card>
+          )}
         </div>
       </PageContent>
     </>

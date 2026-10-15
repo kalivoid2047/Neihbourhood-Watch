@@ -331,6 +331,11 @@ export async function logout(refresh) {
   });
 }
 
+/** Flag the signed-in resident's account for an admin to consider as a block captain. */
+export async function applyForBlockCaptain() {
+  return authFetch("/api/users/me/apply-block-captain", { method: "POST" });
+}
+
 export async function createVerificationRequest(notes) {
   return authFetch("/api/verification-requests", {
     method: "POST",

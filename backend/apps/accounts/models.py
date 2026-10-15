@@ -138,6 +138,8 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDTimeStampedModel):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     otp_verified_at = models.DateTimeField(null=True, blank=True)
+    # Set when a resident applies to become a block captain; an admin reviews it.
+    block_captain_applied_at = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
 
@@ -156,6 +158,18 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDTimeStampedModel):
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        # Every account has a role; new ones start as residents.
+        if self.role_id is None:
+            self.role, _ = Role.objects.get_or_create(
+                code=Role.Code.RESIDENT,
+                defaults={"name": Role.Code.RESIDENT.label, "is_system": True},
+            )
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None:
+                kwargs["update_fields"] = {*update_fields, "role"}
+        super().save(*args, **kwargs)
 
     def effective_location(self, max_age=timedelta(hours=6)):
         """Best guess at where this user is now, as ``(lat, lon)`` floats or ``None``.

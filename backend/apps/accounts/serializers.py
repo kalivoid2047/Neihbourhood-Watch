@@ -82,8 +82,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "verification_status",
             "otp_verified_at",
             "date_joined",
+            "block_captain_applied_at",
         ]
         read_only_fields = [
+            "block_captain_applied_at",
             "id",
             "email",
             "national_id",

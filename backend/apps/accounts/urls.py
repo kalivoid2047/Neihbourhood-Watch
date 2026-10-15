@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     AuthRefreshView,
+    BlockCaptainApplicationView,
     DeviceTokenView,
     CoordinatorVerificationRequestListView,
     EmergencyContactDetailView,
@@ -31,6 +32,11 @@ urlpatterns = [
     path("auth/forgot-password", ForgotPasswordView.as_view(), name="auth-forgot-password"),
     path("auth/reset-password", ResetPasswordView.as_view(), name="auth-reset-password"),
     path("users/me", UserProfileView.as_view(), name="users-me"),
+    path(
+        "users/me/apply-block-captain",
+        BlockCaptainApplicationView.as_view(),
+        name="users-me-apply-block-captain",
+    ),
     path(
         "verification-requests",
         VerificationRequestCreateView.as_view(),

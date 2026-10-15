@@ -335,6 +335,29 @@ class VerificationRequestCreateView(APIView):
         )
 
 
+class BlockCaptainApplicationView(APIView):
+    """POST /api/users/me/apply-block-captain: flag the account for admin review."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.role.code != Role.Code.RESIDENT:
+            raise ValidationError({"detail": "Only residents can apply to become a block captain."})
+        if user.block_captain_applied_at:
+            raise ValidationError({"detail": "Your application is already awaiting review."})
+        user.block_captain_applied_at = timezone.now()
+        user.save(update_fields=["block_captain_applied_at", "updated_at", "last_modified_at"])
+        create_audit_log(
+            action="block_captain_application",
+            actor=user,
+            entity=user,
+            request=request,
+            after={"block_captain_applied_at": user.block_captain_applied_at.isoformat()},
+        )
+        return Response(UserProfileSerializer(user, context={"request": request}).data)
+
+
 class CoordinatorVerificationRequestListView(generics.ListAPIView):
     serializer_class = VerificationRequestSerializer
     permission_classes = [IsAuthenticated, HasAnyRole]

@@ -22,11 +22,36 @@ class UserAdmin(DjangoUserAdmin):
         "full_name",
         "phone_number",
         "role",
+        "applied_for_block_captain",
         "verification_status",
         "is_active",
         "is_staff",
     )
-    list_filter = ("verification_status", "role", "is_active", "is_staff")
+    list_filter = ("block_captain_applied_at", "verification_status", "role", "is_active", "is_staff")
+    actions = ("approve_block_captain", "decline_block_captain")
+
+    @admin.display(boolean=True, description="Applied: block captain", ordering="block_captain_applied_at")
+    def applied_for_block_captain(self, obj):
+        return obj.block_captain_applied_at is not None
+
+    @admin.action(description="Approve block captain application(s)")
+    def approve_block_captain(self, request, queryset):
+        role, _ = Role.objects.get_or_create(
+            code=Role.Code.BLOCK_CAPTAIN,
+            defaults={"name": Role.Code.BLOCK_CAPTAIN.label, "is_system": True},
+        )
+        n = 0
+        for user in queryset.filter(block_captain_applied_at__isnull=False):
+            user.role = role
+            user.block_captain_applied_at = None
+            user.save()
+            n += 1
+        self.message_user(request, f"{n} account(s) are now block captains.")
+
+    @admin.action(description="Decline block captain application(s)")
+    def decline_block_captain(self, request, queryset):
+        n = queryset.filter(block_captain_applied_at__isnull=False).update(block_captain_applied_at=None)
+        self.message_user(request, f"{n} application(s) declined.")
     search_fields = ("email", "full_name", "phone_number", "national_id")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
@@ -49,6 +74,7 @@ class UserAdmin(DjangoUserAdmin):
             {
                 "fields": (
                     "role",
+                    "block_captain_applied_at",
                     "verification_status",
                     "is_active",
                     "is_staff",

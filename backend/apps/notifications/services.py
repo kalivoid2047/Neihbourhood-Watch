@@ -14,6 +14,7 @@ the codebase.  It handles:
 * High-level helpers for incident alerts and SOS emergency contacts.
 """
 
+import logging
 import math
 from datetime import timedelta
 
@@ -21,6 +22,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from .models import Notification, NotificationPreference, NotificationTemplate
+
+logger = logging.getLogger(__name__)
 
 
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -354,6 +357,13 @@ class NotificationDispatchService:
         from apps.accounts.models import EmergencyContact
         from apps.notifications.tasks import send_notifications_batch
 
+        # Alarm the neighbours first: it is the time-critical part, and a
+        # failure queueing SMS (e.g. broker down) must not stop it.
+        try:
+            cls.dispatch_sos_nearby(sos_alert)
+        except Exception:
+            logger.exception("Failed to alarm nearby users for SOS %s", sos_alert.pk)
+
         contacts = EmergencyContact.objects.filter(
             user=sos_alert.user,
             can_receive_sos=True,
@@ -386,9 +396,10 @@ class NotificationDispatchService:
             notification_ids.append(str(notif.pk))
 
         if notification_ids:
-            send_notifications_batch.delay(notification_ids)
-
-        cls.dispatch_sos_nearby(sos_alert)
+            try:
+                send_notifications_batch.delay(notification_ids)
+            except Exception:
+                logger.exception("Failed to queue SOS SMS for %s", sos_alert.pk)
 
     @classmethod
     def dispatch_sos_nearby(cls, sos_alert) -> list[str]:

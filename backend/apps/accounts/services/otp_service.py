@@ -1,6 +1,7 @@
 """Database-backed OTP service with provider-friendly boundaries."""
 
 from dataclasses import dataclass
+import logging
 from datetime import timedelta
 import secrets
 
@@ -10,6 +11,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.accounts.models import OTPChallenge
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -38,7 +41,12 @@ class OTPService:
         )
         if channel == OTPChallenge.Channel.EMAIL:
             from apps.accounts.tasks import send_otp_email
-            send_otp_email.delay(destination, code, purpose, expires_at.isoformat())
+            try:
+                send_otp_email.delay(destination, code, purpose, expires_at.isoformat())
+            except Exception:
+                # A mail/broker outage must not fail the request; the challenge is
+                # saved, so the user can ask for the code to be sent again.
+                logger.exception("Could not queue OTP email for challenge %s", challenge.pk)
         return OTPDelivery(challenge=challenge, code=code, expires_at=expires_at)
 
     def verify(self, *, user, purpose, code) -> OTPChallenge:

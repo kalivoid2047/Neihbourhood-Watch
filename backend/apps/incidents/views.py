@@ -90,7 +90,10 @@ class IncidentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if not user.role_id:
-            return Incident.objects.none()
+            # No role yet: still show the incidents this account reported or was assigned.
+            return Incident.objects.filter(Q(reporter_id=user.id) | Q(assigned_to_id=user.id)).select_related(
+                "reporter", "neighborhood", "verified_by", "assigned_to"
+            ).order_by("-created_at")
 
         role_code = user.role.code
 

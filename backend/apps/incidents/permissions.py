@@ -42,8 +42,11 @@ def user_can_view_incident(user, incident) -> bool:
       now (this matches the list queryset, so an incident that appears in a
       user's list can always be opened).
     """
-    if not user or not user.is_authenticated or not user.role_id:
+    if not user or not user.is_authenticated:
         return False
+    # An account without a role can still open what it reported or was assigned.
+    if not user.role_id:
+        return incident.reporter_id == user.id or incident.assigned_to_id == user.id
 
     role_code = user.role.code
 

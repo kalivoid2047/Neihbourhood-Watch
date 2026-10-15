@@ -163,3 +163,34 @@ class IncidentFilterTests(TestCase):
     def test_ordering_by_occurred_at(self):
         response = self.client.get(self.url, {"ordering": "occurred_at"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class RolelessReporterTests(TestCase):
+    def test_roleless_user_can_open_incident_they_reported(self):
+        from rest_framework.test import APIClient
+
+        user = User.objects.create_user(
+            email="norole@test.invalid",
+            password="x",
+            full_name="No Role",
+            phone_number="+263779900001",
+            national_id="nr1",
+        )
+        client = APIClient()
+        client.force_authenticate(user)
+        created = client.post(
+            "/api/incidents/",
+            {
+                "title": "t",
+                "description": "d",
+                "category": "theft",
+                "severity": "yellow",
+                "latitude": "-17.829200",
+                "longitude": "31.052200",
+                "occurred_at": "2026-10-15T20:00:00Z",
+            },
+            format="json",
+        )
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(client.get(f"/api/incidents/{created.json()['id']}/").status_code, 200)
+        self.assertEqual(client.get("/api/incidents/").json()["count"], 1)

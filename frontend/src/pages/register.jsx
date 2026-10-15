@@ -63,7 +63,7 @@ export default function RegisterPage({ onRegister }) {
     setResendLoading(true);
     setResendMessage(null);
     try {
-      const result = await requestOtp(registeredUser.email, 'registration', 'sms');
+      const result = await requestOtp(registeredUser.email, 'registration', 'email');
       if (result?.debug_code) setDebugCode(result.debug_code);
       setResendMessage('A new code has been sent.');
     } catch {
@@ -83,7 +83,7 @@ export default function RegisterPage({ onRegister }) {
             </div>
             <h1 className="text-3xl mb-2">Verify your account</h1>
             <p className="text-slate-400">
-              Enter the code sent to <strong className="text-white">{registeredUser?.phone_number}</strong>
+              Enter the code sent to <strong className="text-white">{registeredUser?.email}</strong>
             </p>
           </div>
           <Tilt max={4} className="glass glass-strong p-8">

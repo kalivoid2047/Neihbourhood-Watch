@@ -588,6 +588,9 @@ docker compose logs -f postgres
 │   └── nginx/
 │       └── default.conf
 ├── docs/                      # Documentation
+│   ├── DEPLOYMENT_GUIDE.md        # Production deployment
+│   ├── BLOCK_CAPTAIN_SETUP.md     # Creating block captains
+│   ├── SECURITY_REPORT.md, PROJECT_AUDIT.md, IMPLEMENTATION_GAP_ANALYSIS.md
 │   ├── PHASES_4_5_6_ROADMAP.md
 │   └── ...
 ├── docker-compose.yml         # Local development stack

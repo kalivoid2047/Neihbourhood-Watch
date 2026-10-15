@@ -7,7 +7,7 @@
 #   • Celery beat
 #
 # For systemd / supervisor deployment, run each process individually.
-# See DEPLOYMENT_GUIDE.md for unit file examples.
+# See docs/DEPLOYMENT_GUIDE.md for unit file examples.
 
 set -euo pipefail
 

@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "Django API (runserver)",
-      "runtimeExecutable": ".venv312/Scripts/python.exe",
+      "runtimeExecutable": "venv/Scripts/python.exe",
       "runtimeArgs": ["backend/manage.py", "runserver", "0.0.0.0:8000", "--settings=config.settings.local"],
       "port": 8000
     },
@@ -15,13 +15,13 @@
     },
     {
       "name": "Celery Worker",
-      "runtimeExecutable": ".venv312/Scripts/python.exe",
+      "runtimeExecutable": "venv/Scripts/python.exe",
       "runtimeArgs": ["-m", "celery", "-A", "config.celery", "worker", "--loglevel=info", "--pool=solo"],
       "port": null
     },
     {
       "name": "Celery Beat",
-      "runtimeExecutable": ".venv312/Scripts/python.exe",
+      "runtimeExecutable": "venv/Scripts/python.exe",
       "runtimeArgs": ["-m", "celery", "-A", "config.celery", "beat", "--loglevel=info"],
       "port": null
     }
